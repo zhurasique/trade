@@ -1,5 +1,7 @@
 package com.example.trade.domain;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import javax.persistence.*;
 
 @Entity
@@ -62,5 +64,9 @@ public class Instrument {
 
     public void setTime(String time) {
         this.time = time;
+    }
+
+    public String toString(){
+        return getInstrument() + " " + getId();
     }
 }
