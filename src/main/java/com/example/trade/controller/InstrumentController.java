@@ -44,8 +44,7 @@ public class InstrumentController {
         }
 
         // Changed from JsonArray to String, because was troubles with returning json
-        String st = String.valueOf(createdArray);
-        return st;
+        return createdArray.toString();
     }
 
     // If u want to see id's of instruments
