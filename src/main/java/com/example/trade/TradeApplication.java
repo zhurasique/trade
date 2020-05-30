@@ -1,15 +1,14 @@
 package com.example.trade;
 
 
-import com.example.trade.controller.InstrumentController;
-import com.example.trade.domain.Instrument;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -22,7 +21,11 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.net.http.HttpHeaders;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -35,7 +38,6 @@ public class TradeApplication implements CommandLineRunner {
 		SpringApplication.run(TradeApplication.class, args);
 	}
 
-	@GetMapping
 	public void list(TextMessage message){
 		JsonObject convertedObject = new Gson().fromJson(message.getPayload(), JsonObject.class);
 		JsonObject createdObject = new JsonObject();
@@ -48,9 +50,9 @@ public class TradeApplication implements CommandLineRunner {
 			double ask = convertedObject.get("best_ask").getAsDouble();
 			double last = convertedObject.get("price").getAsDouble();
 
+			// Parse time to format HH:MM:SS
 			String time_tmp = convertedObject.get("time").getAsString();
 			String time = "";
-
 			Pattern pattern = Pattern.compile("T(\\d{2}:\\d{2}:\\d{2})\\.");
 			Matcher matcher = pattern.matcher(time_tmp);
 			while (matcher.find())
@@ -62,15 +64,16 @@ public class TradeApplication implements CommandLineRunner {
 			createdObject.addProperty("last", last);
 			createdObject.addProperty("time", time);
 
-			System.out.println("Message Mapped: [ " + createdObject + " ]");
+			System.out.println("Message Mapped: \n" + createdObject + "\n");
 
+			// Sending POST request to save instrument
 			postRequest(instrument, bid, ask, last, time);
 		}
 	}
 
 	public void postRequest(String instrument, double bid, double ask, double last, String time){
 		try{
-			URL url = new URL("http://localhost:8080/api");
+			URL url = new URL("http://localhost:8080");
 			Map<String, Object> params = new LinkedHashMap<>();
 			params.put("instrument", instrument);
 			params.put("bid", bid);
@@ -118,7 +121,7 @@ public class TradeApplication implements CommandLineRunner {
 
 		@Override
 		public void handleTextMessage(WebSocketSession session, TextMessage message) {
-			System.out.println("Message Received: [ " + message.getPayload() + " ]");
+			System.out.println("\nMessage Received: \n" + message.getPayload());
 			list(message);
 		}
 
@@ -137,7 +140,7 @@ public class TradeApplication implements CommandLineRunner {
 					"        \"ticker\"\n" +
 					"    ]\n" +
 					"}";
-			System.out.println("Sending: [" + payload + "]");
+			System.out.println("Sending: \n" + payload + "\n");
 			session.sendMessage(new TextMessage(payload));
 		}
 
@@ -148,7 +151,7 @@ public class TradeApplication implements CommandLineRunner {
 
 		@Override
 		public void afterConnectionClosed(WebSocketSession session, CloseStatus status){
-			System.out.println("Connection Closed: [ " + status.getReason() + " ]");
+			System.out.println("Connection Closed: \n" + status.getReason() + "\n");
 		}
 	}
 }

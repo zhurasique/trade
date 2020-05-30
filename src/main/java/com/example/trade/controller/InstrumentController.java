@@ -1,23 +1,15 @@
 package com.example.trade.controller;
 
-
 import com.example.trade.domain.Instrument;
 import com.example.trade.repo.InstrumentRepo;
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.stream.JsonReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
-@RequestMapping("/api")
 public class InstrumentController {
     private final InstrumentRepo instrumentRepo;
 
@@ -26,6 +18,7 @@ public class InstrumentController {
         this.instrumentRepo = instrumentRepo;
     }
 
+    // GET request to see last values for all instruments
     @GetMapping
     public String list(){
         // Mapped to here, to hide id on returned json
@@ -47,15 +40,11 @@ public class InstrumentController {
         return createdArray.toString();
     }
 
-    // If u want to see id's of instruments
-    @GetMapping("/ids")
-    public List<Instrument> listWithIds(){
-        return instrumentRepo.findAll();
-    }
-
+    // POST request to add instrument to db
     @PostMapping
     public Instrument create(String instrument, double bid, double ask, double last, String time){
         Instrument createdInstrument = new Instrument();
+        // Deleting instrument from db, to have only last one in it
         delete(instrument);
 
         createdInstrument.setInstrument(instrument);
